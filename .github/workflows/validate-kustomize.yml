@@ -1,0 +1,26 @@
+---
+name: Validate Kustomize
+
+on:
+  pull_request:
+
+jobs:
+  validate-kustomize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Validate all kustomization.yaml files
+        run: |
+          find . -name "kustomization.yaml" -not -path "*/vendor/*" | while read f; do
+            dir=$(dirname "$f")
+            echo "Validating $dir..."
+            kustomize build "$dir"
+          done
